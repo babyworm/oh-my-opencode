@@ -65,6 +65,7 @@ export type BuiltinAgentName =
   | "document-writer"
   | "multimodal-looker"
   | "rtl-engineer"
+  | "systemc-tlm-engineer"
 
 export type OverridableAgentName =
   | "build"

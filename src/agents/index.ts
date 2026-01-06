@@ -7,6 +7,7 @@ import { frontendUiUxEngineerAgent } from "./frontend-ui-ux-engineer"
 import { documentWriterAgent } from "./document-writer"
 import { multimodalLookerAgent } from "./multimodal-looker"
 import { rtlEngineerAgent } from "./rtl-engineer"
+import { systemcTlmEngineerAgent } from "./systemc-tlm-engineer"
 
 export const builtinAgents: Record<string, AgentConfig> = {
   Sisyphus: sisyphusAgent,
@@ -17,6 +18,7 @@ export const builtinAgents: Record<string, AgentConfig> = {
   "document-writer": documentWriterAgent,
   "multimodal-looker": multimodalLookerAgent,
   "rtl-engineer": rtlEngineerAgent,
+  "systemc-tlm-engineer": systemcTlmEngineerAgent,
 }
 
 export * from "./types"
