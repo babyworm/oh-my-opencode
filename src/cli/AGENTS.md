@@ -27,7 +27,8 @@ cli/
 |---------|---------|
 | `install` | Interactive setup wizard |
 | `doctor` | Environment health checks |
-| `run` | Launch OpenCode session |
+| `run` | Launch OpenCode session with completion enforcement |
+| `get-local-version` | Show installed version, check for updates |
 
 ## DOCTOR CHECKS
 

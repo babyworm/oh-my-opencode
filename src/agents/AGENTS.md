@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-7 AI agents for multi-model orchestration. Sisyphus orchestrates, specialists handle domains.
+9 AI agents for multi-model orchestration. Sisyphus orchestrates, specialists handle domains.
 
 ## STRUCTURE
 
@@ -16,6 +16,7 @@ agents/
 ├── document-writer.ts       # Technical docs
 ├── multimodal-looker.ts     # PDF/image analysis
 ├── rtl-engineer.ts          # SystemVerilog RTL design
+├── systemc-tlm-engineer.ts  # SystemC TLM 2.0 modeling
 ├── sisyphus-prompt-builder.ts  # Sisyphus prompt construction
 ├── build-prompt.ts          # Shared build agent prompt
 ├── plan-prompt.ts           # Shared plan agent prompt
@@ -36,6 +37,7 @@ agents/
 | document-writer | google/gemini-3-pro-preview | - | Technical writing |
 | multimodal-looker | google/gemini-3-flash | - | Visual analysis |
 | rtl-engineer | anthropic/claude-opus-4-5 | - | SystemVerilog RTL design, verification |
+| systemc-tlm-engineer | anthropic/claude-opus-4-5 | - | SystemC TLM 2.0, AMBA protocols, virtual platforms |
 
 ## HOW TO ADD
 

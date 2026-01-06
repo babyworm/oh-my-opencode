@@ -84,6 +84,7 @@
       - [4.1 Anthropic (Claude)](#41-anthropic-claude)
       - [4.2 Google Gemini (Antigravity OAuth)](#42-google-gemini-antigravity-oauth)
       - [4.3 OpenAI (ChatGPT Plus/Pro)](#43-openai-chatgpt-pluspro)
+    - [5단계: RTL 개발 환경 (선택)](#5단계-rtl-개발-환경-선택)
     - [⚠️ 주의](#️-주의)
     - [설정 확인](#설정-확인)
     - [사용자에게 '축하합니다! 🎉'라고 말하세요](#사용자에게-축하합니다-라고-말하세요)
@@ -91,6 +92,8 @@
   - [언인스톨](#언인스톨)
   - [기능](#기능)
     - [Agents: 당신의 새로운 팀원들](#agents-당신의-새로운-팀원들)
+      - [하드웨어 설계 에이전트](#하드웨어-설계-에이전트)
+      - [RTL 개발 환경 설정](#rtl-개발-환경-설정)
     - [백그라운드 에이전트: 진짜 팀 처럼 일 하도록](#백그라운드-에이전트-진짜-팀-처럼-일-하도록)
     - [도구: 당신의 동료가 더 좋은 도구를 갖고 일하도록](#도구-당신의-동료가-더-좋은-도구를-갖고-일하도록)
       - [왜 당신만 IDE 를 쓰나요?](#왜-당신만-ide-를-쓰나요)
@@ -256,6 +259,8 @@ npx oh-my-opencode install --no-tui --claude=<yes|no|max20> --chatgpt=<yes|no> -
 
 > **Ubuntu/Debian 사용자 참고**: Snap으로 Bun을 설치한 경우 (`/snap/bin/bun`), Snap의 샌드박싱으로 인해 `bunx`가 "script not found" 오류와 함께 실패합니다. 대신 `npx`를 사용하거나, 공식 설치 스크립트로 Bun을 재설치하세요: `curl -fsSL https://bun.sh/install | bash`
 
+> **문제 해결**: 설치가 실패하거나 제대로 작동하지 않으면 `bunx oh-my-opencode doctor`를 실행하여 일반적인 문제를 진단하세요.
+
 **예시:**
 - 모든 구독 + max20: `bunx oh-my-opencode install --no-tui --claude=max20 --chatgpt=yes --gemini=yes`
 - Claude만 (max20 없음): `bunx oh-my-opencode install --no-tui --claude=yes --chatgpt=no --gemini=no`
@@ -370,6 +375,47 @@ opencode auth login
 ```
 
 
+### 5단계: RTL 개발 환경 (선택)
+
+**사용자가 SystemVerilog/Verilog RTL 설계 작업을 할 예정이라면**, RTL 개발 환경을 설정하세요:
+
+```bash
+# RTL 도구 확인
+echo "=== RTL 환경 점검 ==="
+
+# Verilator (RTL 필수)
+if command -v verilator &> /dev/null; then
+    echo "✓ Verilator $(verilator --version 2>&1 | head -1)"
+else
+    echo "✗ Verilator 없음"
+fi
+
+# LSP 서버 (권장)
+if command -v svls &> /dev/null; then
+    echo "✓ svls LSP 서버 설치됨"
+elif command -v slang-server &> /dev/null; then
+    echo "✓ slang-server 설치됨"
+else
+    echo "✗ SystemVerilog LSP 서버 없음"
+fi
+```
+
+**도구가 누락되었다면 설치:**
+
+```bash
+# OS 감지 및 RTL 도구 설치
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    sudo apt update && sudo apt install -y verilator
+    # svls 설치 (Rust/cargo 필요)
+    command -v cargo &> /dev/null && cargo install svls
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    brew install verilator
+    command -v cargo &> /dev/null && cargo install svls
+fi
+```
+
+Icarus Verilog, Yosys, cocotb, GTKWave 등 자세한 설치 옵션은 아래 [RTL 개발 환경 설정](#rtl-개발-환경-설정) 섹션을 참조하세요.
+
 ### ⚠️ 주의
 
 **사용자가 명시적으로 요청하지 않는 한, 모델 설정을 변경하거나 기능(에이전트, 훅, MCP)을 비활성화하지 마세요.**
@@ -413,6 +459,49 @@ gh repo star code-yeongyu/oh-my-opencode
 
 </details>
 
+## CLI 명령어
+
+Oh My OpenCode 는 관리 및 문제 해결을 위한 CLI를 제공합니다:
+
+| 명령어 | 설명 |
+|---------|-------------|
+| `bunx oh-my-opencode install` | 대화형 설치 마법사 |
+| `bunx oh-my-opencode doctor` | 설정 상태 진단 |
+| `bunx oh-my-opencode run <message>` | Todo/백그라운드 태스크 완료 강제 모드로 OpenCode 실행 |
+| `bunx oh-my-opencode get-local-version` | 설치된 버전 확인 및 업데이트 체크 |
+
+### Doctor 명령어
+
+`doctor` 명령어는 17가지 이상의 상태 검사를 실행하여 일반적인 문제를 진단합니다:
+
+```bash
+bunx oh-my-opencode doctor
+# 상세 출력
+bunx oh-my-opencode doctor --verbose
+# 특정 카테고리만 검사
+bunx oh-my-opencode doctor --category authentication
+```
+
+검사 카테고리: `installation`, `configuration`, `authentication`, `dependencies`, `tools`, `updates`
+
+**사용 시점:**
+- 설치가 제대로 작동하지 않을 때
+- 에이전트가 로드되지 않을 때
+- 인증이 실패할 때
+
+### Run 명령어
+
+`run` 명령어는 강화된 완료 강제 기능과 함께 OpenCode를 실행합니다:
+
+```bash
+bunx oh-my-opencode run "index.ts의 버그 수정"
+bunx oh-my-opencode run --agent Sisyphus "기능 X 구현"
+bunx oh-my-opencode run --timeout 3600000 "대규모 리팩토링 작업"
+```
+
+`opencode run`과 달리, 이 명령어는 다음이 완료될 때까지 대기합니다:
+- 모든 Todo가 완료되거나 취소됨
+- 모든 자식 세션(백그라운드 태스크)이 유휴 상태가 됨
 
 ## 언인스톨
 
@@ -458,6 +547,203 @@ oh-my-opencode를 제거하려면:
 - **frontend-ui-ux-engineer** (`google/gemini-3-pro-preview`): 개발자로 전향한 디자이너라는 설정을 갖고 있습니다. 멋진 UI를 만듭니다. 아름답고 창의적인 UI 코드를 생성하는 데 탁월한 Gemini를 사용합니다.
 - **document-writer** (`google/gemini-3-pro-preview`): 기술 문서 전문가라는 설정을 갖고 있습니다. Gemini 는 문학가입니다. 글을 기가막히게 씁니다.
 - **multimodal-looker** (`google/gemini-3-flash`): 시각적 콘텐츠 해석을 위한 전문 에이전트. PDF, 이미지, 다이어그램을 분석하여 정보를 추출합니다.
+
+#### 하드웨어 설계 에이전트
+
+RTL 및 시스템 레벨 모델링을 위한 전문 에이전트:
+
+- **rtl-engineer** (`anthropic/claude-opus-4-5`): [lowRISC Verilog Coding Style Guide](https://github.com/lowRISC/style-guides/blob/master/VerilogCodingStyle.md)를 따르는 전문 SystemVerilog/Verilog RTL 엔지니어입니다. 적절한 검증 테스트벤치와 함께 합성 가능한 하드웨어 모듈을 설계합니다. Verilator와 Icarus Verilog 시뮬레이션 지원, Yosys 합성 플로우, 일반적인 IP 코어(OpenTitan, PULP, Alex Forencich의 verilog-axi/ethernet)에 대한 지식을 포함합니다.
+
+- **systemc-tlm-engineer** (`anthropic/claude-opus-4-5`): Approximately Timed (AT) 논블로킹 모델을 전문으로 하는 SystemC TLM 2.0 엔지니어입니다. ARM AMBA 프로토콜(AXI, AHB, APB, ACE)을 지원하며 Accellera 표준을 따르는 가상 플랫폼 컴포넌트를 생성합니다. GEM5-SystemC 브릿지 통합 및 SystemC-SystemVerilog DPI 공동 시뮬레이션을 포함합니다.
+
+**사용 사례:**
+- FPGA 및 ASIC용 RTL 설계 및 검증
+- 초기 소프트웨어 개발을 위한 가상 플랫폼 개발
+- 아키텍처 탐색을 위한 트랜잭션 레벨 모델링
+- 하드웨어/소프트웨어 공동 시뮬레이션
+
+```
+@rtl-engineer에게 AXI-Stream 인터페이스가 있는 파라미터화된 FIFO 설계 요청
+@systemc-tlm-engineer에게 버스 기능 모델링을 위한 AXI4 이니시에이터 모델 생성 요청
+```
+
+#### RTL 개발 환경 설정
+
+**rtl-engineer** 에이전트와 **systemverilog** 스킬을 완전히 활용하려면 다음 도구들을 설치하세요:
+
+<details>
+<summary>RTL 도구 설치 가이드 (클릭하여 펼치기)</summary>
+
+##### 필수 도구
+
+| 도구 | 용도 | 우선순위 |
+|------|------|----------|
+| **Verilator** | 린트, 컴파일, 시뮬레이션 | 필수 |
+| **SVL LSP 서버** | 실시간 진단, 탐색 | 권장 |
+
+##### Verilator (필수)
+
+```bash
+# Ubuntu/Debian
+sudo apt update && sudo apt install -y verilator
+
+# macOS
+brew install verilator
+
+# 설치 확인
+verilator --version
+```
+
+##### SystemVerilog LSP 서버 (권장)
+
+실시간 진단을 위해 다음 LSP 서버 중 하나를 선택하세요:
+
+**옵션 1: svls (쉬운 설치, 대부분의 사용자에게 권장)**
+```bash
+# Rust 필요
+cargo install svls
+
+# 확인
+svls --version
+```
+
+**옵션 2: slang-server (가장 정확한 진단)**
+```bash
+# Ubuntu - 소스에서 빌드
+sudo apt install -y cmake ninja-build
+git clone https://github.com/MikePopoloski/slang.git
+cd slang && mkdir build && cd build
+cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
+ninja slang-server
+sudo cp bin/slang-server /usr/local/bin/
+
+# macOS - brew 사용
+brew install slang
+```
+
+**옵션 3: Verible (포맷팅에 적합)**
+```bash
+# GitHub 릴리스에서 다운로드
+# https://github.com/chipsalliance/verible/releases
+# 압축 해제 후 PATH에 추가
+```
+
+##### 선택적 도구
+
+**Icarus Verilog** (X/Z 상태가 있는 타이밍 시뮬레이션):
+```bash
+# Ubuntu/Debian
+sudo apt install -y iverilog
+
+# macOS
+brew install icarus-verilog
+
+# 확인
+iverilog -V
+```
+
+**Yosys** (오픈소스 합성):
+```bash
+# Ubuntu/Debian
+sudo apt install -y yosys
+
+# macOS
+brew install yosys
+
+# 확인
+yosys --version
+```
+
+**cocotb** (Python 테스트벤치):
+```bash
+pip install cocotb
+```
+
+**GTKWave** (파형 뷰어):
+```bash
+# Ubuntu/Debian
+sudo apt install -y gtkwave
+
+# macOS
+brew install --cask gtkwave
+```
+
+##### LSP 서버 설정
+
+`oh-my-opencode.json` 또는 `.opencode/oh-my-opencode.json`에 추가:
+
+```json
+{
+  "lsp": {
+    "svls": {
+      "command": ["svls"],
+      "extensions": [".sv", ".svh", ".v", ".vh"],
+      "priority": 10
+    }
+  }
+}
+```
+
+##### LLM 에이전트용: RTL 환경 자동 설정
+
+RTL 개발 환경을 설정하는 LLM 에이전트라면, 다음 검사를 실행하고 누락된 도구를 설치하세요:
+
+```bash
+# RTL 도구 확인
+echo "=== RTL 환경 점검 ==="
+
+# Verilator (필수)
+if command -v verilator &> /dev/null; then
+    echo "✓ Verilator $(verilator --version 2>&1 | head -1)"
+else
+    echo "✗ Verilator 없음 - 설치 필요"
+fi
+
+# LSP 서버 (권장 - 최소 하나)
+if command -v svls &> /dev/null; then
+    echo "✓ svls (SVL LSP 서버) 설치됨"
+elif command -v slang-server &> /dev/null; then
+    echo "✓ slang-server 설치됨"
+elif command -v verible-verilog-ls &> /dev/null; then
+    echo "✓ verible LSP 설치됨"
+else
+    echo "✗ SVL LSP 서버 없음 - svls 설치 권장"
+fi
+
+# 선택적 도구
+command -v iverilog &> /dev/null && echo "✓ Icarus Verilog 설치됨" || echo "○ Icarus Verilog (선택)"
+command -v yosys &> /dev/null && echo "✓ Yosys 설치됨" || echo "○ Yosys (선택)"
+command -v gtkwave &> /dev/null && echo "✓ GTKWave 설치됨" || echo "○ GTKWave (선택)"
+```
+
+**OS에 따라 누락된 필수 도구 설치:**
+
+```bash
+# OS 감지 및 설치
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Linux - apt 사용
+    sudo apt update
+    sudo apt install -y verilator
+    # 선택: sudo apt install -y iverilog yosys gtkwave
+    
+    # cargo가 있으면 svls 설치
+    if command -v cargo &> /dev/null; then
+        cargo install svls
+    fi
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS - brew 사용
+    brew install verilator
+    # 선택: brew install icarus-verilog yosys
+    # brew install --cask gtkwave
+    
+    # cargo가 있으면 svls 설치
+    if command -v cargo &> /dev/null; then
+        cargo install svls
+    fi
+fi
+```
+
+</details>
 
 각 에이전트는 메인 에이전트가 알아서 호출하지만, 명시적으로 요청할 수도 있습니다:
 
@@ -828,7 +1114,7 @@ Schema 자동 완성이 지원됩니다:
 }
 ```
 
-사용 가능한 에이전트: `oracle`, `librarian`, `explore`, `frontend-ui-ux-engineer`, `document-writer`, `multimodal-looker`
+사용 가능한 에이전트: `oracle`, `librarian`, `explore`, `frontend-ui-ux-engineer`, `document-writer`, `multimodal-looker`, `rtl-engineer`, `systemc-tlm-engineer`
 
 ### Sisyphus Agent
 

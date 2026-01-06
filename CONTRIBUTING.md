@@ -109,8 +109,8 @@ After making changes, you can test your local build in OpenCode:
 ```
 oh-my-opencode/
 ├── src/
-│   ├── agents/        # AI agents (OmO, oracle, librarian, explore, etc.)
-│   ├── hooks/         # 21 lifecycle hooks
+│   ├── agents/        # AI agents (Sisyphus, oracle, librarian, explore, etc.)
+│   ├── hooks/         # 22+ lifecycle hooks
 │   ├── tools/         # LSP (11), AST-Grep, Grep, Glob, etc.
 │   ├── mcp/           # MCP server integrations (context7, grep_app)
 │   ├── features/      # Claude Code compatibility layers

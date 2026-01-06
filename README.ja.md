@@ -259,6 +259,8 @@ npx oh-my-opencode install --no-tui --claude=<yes|no|max20> --chatgpt=<yes|no> -
 
 > **Ubuntu/Debian ユーザーへの注意**: Snap で Bun をインストールした場合 (`/snap/bin/bun`)、Snap のサンドボックス化により `bunx` が「script not found」エラーで失敗します。代わりに `npx` を使用するか、公式インストーラーで Bun を再インストールしてください: `curl -fsSL https://bun.sh/install | bash`
 
+> **トラブルシューティング**: インストールが失敗したり、うまく動作しない場合は、`bunx oh-my-opencode doctor` を実行して一般的な問題を診断してください。
+
 **例：**
 - すべてのサブスクリプション + max20: `bunx oh-my-opencode install --no-tui --claude=max20 --chatgpt=yes --gemini=yes`
 - Claude のみ（max20 なし）: `bunx oh-my-opencode install --no-tui --claude=yes --chatgpt=no --gemini=no`
@@ -416,6 +418,49 @@ gh repo star code-yeongyu/oh-my-opencode
 
 </details>
 
+## CLI コマンド
+
+Oh My OpenCode は管理とトラブルシューティングのための CLI を提供します：
+
+| コマンド | 説明 |
+|---------|-------------|
+| `bunx oh-my-opencode install` | 対話型セットアップウィザード |
+| `bunx oh-my-opencode doctor` | セットアップの健全性チェック |
+| `bunx oh-my-opencode run <message>` | Todo/バックグラウンドタスク完了強制モードで OpenCode を実行 |
+| `bunx oh-my-opencode get-local-version` | インストールされたバージョンを表示し、更新を確認 |
+
+### Doctor コマンド
+
+`doctor` コマンドは 17 以上の健全性チェックを実行し、一般的な問題を診断します：
+
+```bash
+bunx oh-my-opencode doctor
+# 詳細出力
+bunx oh-my-opencode doctor --verbose
+# 特定のカテゴリのみチェック
+bunx oh-my-opencode doctor --category authentication
+```
+
+チェックカテゴリ: `installation`, `configuration`, `authentication`, `dependencies`, `tools`, `updates`
+
+**使用するタイミング：**
+- インストールがうまくいかない場合
+- エージェントが読み込まれない場合
+- 認証が失敗する場合
+
+### Run コマンド
+
+`run` コマンドは強化された完了強制機能で OpenCode を起動します：
+
+```bash
+bunx oh-my-opencode run "index.ts のバグを修正"
+bunx oh-my-opencode run --agent Sisyphus "機能 X を実装"
+bunx oh-my-opencode run --timeout 3600000 "大規模リファクタリング"
+```
+
+`opencode run` と異なり、このコマンドは以下が完了するまで待機します：
+- すべての Todo が完了またはキャンセルされる
+- すべての子セッション（バックグラウンドタスク）がアイドル状態になる
 
 ## アンインストール
 

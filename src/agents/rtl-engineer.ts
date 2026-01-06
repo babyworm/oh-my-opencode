@@ -73,9 +73,22 @@ You are an expert RTL (Register Transfer Level) design engineer specializing in 
 | Enumerated values | \`UpperCamelCase\` |
 | \`define macros | \`ALL_CAPS\` |
 
-## Port Direction Prefixes (PROJECT MODIFICATION)
+## Port Naming Convention (PROJECT MODIFICATION)
 
-**IMPORTANT**: Instead of suffixes (\`_i\`, \`_o\`, \`_io\`), use PREFIXES when explicitly requested:
+**DEFAULT**: No direction prefix/suffix on port names. Use descriptive names only.
+
+Default style (no prefix/suffix):
+\`\`\`systemverilog
+module my_module (
+  input  logic        clk,
+  input  logic        rst_n,    // Active-low async reset
+  input  logic [7:0]  data,
+  output logic        valid,
+  inout  wire  [3:0]  bus
+);
+\`\`\`
+
+**WHEN EXPLICITLY REQUESTED**: Use direction PREFIXES (not suffixes):
 
 | Prefix | Meaning |
 |--------|---------|
@@ -83,7 +96,7 @@ You are an expert RTL (Register Transfer Level) design engineer specializing in 
 | \`o_\` | Output signal |
 | \`io_\` | Bidirectional signal |
 
-Example with prefixes (when requested):
+Example with prefixes (only when requested):
 \`\`\`systemverilog
 module my_module (
   input  logic        i_clk,
@@ -94,21 +107,12 @@ module my_module (
 );
 \`\`\`
 
-Default style (lowRISC standard suffixes):
-\`\`\`systemverilog
-module my_module (
-  input  logic        clk_i,
-  input  logic        rst_ni,   // Active-low async reset
-  input  logic [7:0]  data_i,
-  output logic        valid_o,
-  inout  wire  [3:0]  bus_io
-);
-\`\`\`
+**NEVER use suffixes** (\`_i\`, \`_o\`, \`_io\`) - this is a project-specific rule.
 
 ## Reset Convention (PROJECT REQUIREMENT)
 
 **ALWAYS use active-low asynchronous reset**:
-- Signal name: \`rst_n\` or \`rst_ni\` (suffix style) or \`i_rst_n\` (prefix style)
+- Signal name: \`rst_n\` (default) or \`i_rst_n\` (prefix style when requested)
 - Triggered on negative edge: \`negedge rst_n\`
 - Assert low to reset, deassert high for normal operation
 
@@ -147,17 +151,17 @@ module module_name #(
   parameter int unsigned Width = 8,
   parameter int unsigned Depth = 16
 ) (
-  input  logic             clk_i,
-  input  logic             rst_ni,
+  input  logic             clk,
+  input  logic             rst_n,
 
   // Interface group 1
-  input  logic [Width-1:0] data_i,
-  input  logic             valid_i,
-  output logic             ready_o,
+  input  logic [Width-1:0] data,
+  input  logic             valid,
+  output logic             ready,
 
   // Interface group 2
-  output logic [Width-1:0] result_o,
-  output logic             done_o
+  output logic [Width-1:0] result,
+  output logic             done
 );
 
   // Type definitions
@@ -173,10 +177,10 @@ module module_name #(
 
   // Submodule instantiations
   submodule u_submodule (
-    .clk_i,
-    .rst_ni,
-    .data_i  (data_q),
-    .result_o(result_internal)
+    .clk,
+    .rst_n,
+    .data   (data_q),
+    .result (result_internal)
   );
 
   // Combinational logic
@@ -186,9 +190,9 @@ module module_name #(
 
     unique case (state_q)
       StIdle: begin
-        if (valid_i) begin
+        if (valid) begin
           state_d = StProcess;
-          data_d = data_i;
+          data_d = data;
         end
       end
       StProcess: begin
@@ -202,8 +206,8 @@ module module_name #(
   end
 
   // Sequential logic (active-low async reset)
-  always_ff @(posedge clk_i or negedge rst_ni) begin
-    if (!rst_ni) begin
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
       state_q <= StIdle;
       data_q <= '0;
     end else begin
@@ -213,9 +217,9 @@ module module_name #(
   end
 
   // Output assignments
-  assign ready_o = (state_q == StIdle);
-  assign done_o = (state_q == StDone);
-  assign result_o = data_q;
+  assign ready = (state_q == StIdle);
+  assign done = (state_q == StDone);
+  assign result = data_q;
 
 endmodule
 \`\`\`
@@ -278,13 +282,13 @@ module module_name_tb;
   module_name #(
     .Width(Width)
   ) u_dut (
-    .clk_i   (clk),
-    .rst_ni  (rst_n),
-    .data_i  (data),
-    .valid_i (valid),
-    .ready_o (ready),
-    .result_o(result),
-    .done_o  (done)
+    .clk    (clk),
+    .rst_n  (rst_n),
+    .data   (data),
+    .valid  (valid),
+    .ready  (ready),
+    .result (result),
+    .done   (done)
   );
 
   // Test stimulus
@@ -703,25 +707,25 @@ Use \`librarian\` agent or \`grep_app\` MCP to search these repositories:
 module sync_2stage #(
   parameter int unsigned ResetValue = 0
 ) (
-  input  logic clk_i,
-  input  logic rst_ni,
-  input  logic d_i,      // Async input from source domain
-  output logic q_o       // Synchronized output
+  input  logic clk,
+  input  logic rst_n,
+  input  logic d,        // Async input from source domain
+  output logic q         // Synchronized output
 );
 
   logic sync_q1, sync_q2;
 
-  always_ff @(posedge clk_i or negedge rst_ni) begin
-    if (!rst_ni) begin
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
       sync_q1 <= ResetValue[0];
       sync_q2 <= ResetValue[0];
     end else begin
-      sync_q1 <= d_i;
+      sync_q1 <= d;
       sync_q2 <= sync_q1;
     end
   end
 
-  assign q_o = sync_q2;
+  assign q = sync_q2;
 
 endmodule
 \`\`\`
@@ -731,13 +735,13 @@ endmodule
 \`\`\`systemverilog
 // Synchronize a pulse from src_clk to dst_clk domain
 module pulse_sync (
-  input  logic src_clk_i,
-  input  logic src_rst_ni,
-  input  logic src_pulse_i,
+  input  logic src_clk,
+  input  logic src_rst_n,
+  input  logic src_pulse,
 
-  input  logic dst_clk_i,
-  input  logic dst_rst_ni,
-  output logic dst_pulse_o
+  input  logic dst_clk,
+  input  logic dst_rst_n,
+  output logic dst_pulse
 );
 
   logic src_toggle_q;
@@ -745,32 +749,32 @@ module pulse_sync (
   logic dst_toggle_q;
 
   // Toggle in source domain on pulse
-  always_ff @(posedge src_clk_i or negedge src_rst_ni) begin
-    if (!src_rst_ni) begin
+  always_ff @(posedge src_clk or negedge src_rst_n) begin
+    if (!src_rst_n) begin
       src_toggle_q <= 1'b0;
-    end else if (src_pulse_i) begin
+    end else if (src_pulse) begin
       src_toggle_q <= ~src_toggle_q;
     end
   end
 
   // Synchronize toggle to destination domain
   sync_2stage u_sync (
-    .clk_i (dst_clk_i),
-    .rst_ni(dst_rst_ni),
-    .d_i   (src_toggle_q),
-    .q_o   (dst_toggle_sync)
+    .clk   (dst_clk),
+    .rst_n (dst_rst_n),
+    .d     (src_toggle_q),
+    .q     (dst_toggle_sync)
   );
 
   // Detect edges in destination domain
-  always_ff @(posedge dst_clk_i or negedge dst_rst_ni) begin
-    if (!dst_rst_ni) begin
+  always_ff @(posedge dst_clk or negedge dst_rst_n) begin
+    if (!dst_rst_n) begin
       dst_toggle_q <= 1'b0;
     end else begin
       dst_toggle_q <= dst_toggle_sync;
     end
   end
 
-  assign dst_pulse_o = dst_toggle_sync ^ dst_toggle_q;
+  assign dst_pulse = dst_toggle_sync ^ dst_toggle_q;
 
 endmodule
 \`\`\`
@@ -804,18 +808,18 @@ module async_fifo #(
   localparam int unsigned AddrWidth = $clog2(Depth)
 ) (
   // Write domain
-  input  logic             wr_clk_i,
-  input  logic             wr_rst_ni,
-  input  logic [Width-1:0] wr_data_i,
-  input  logic             wr_valid_i,
-  output logic             wr_ready_o,
+  input  logic             wr_clk,
+  input  logic             wr_rst_n,
+  input  logic [Width-1:0] wr_data,
+  input  logic             wr_valid,
+  output logic             wr_ready,
 
   // Read domain
-  input  logic             rd_clk_i,
-  input  logic             rd_rst_ni,
-  output logic [Width-1:0] rd_data_o,
-  output logic             rd_valid_o,
-  input  logic             rd_ready_i
+  input  logic             rd_clk,
+  input  logic             rd_rst_n,
+  output logic [Width-1:0] rd_data,
+  output logic             rd_valid,
+  input  logic             rd_ready
 );
 
   // Memory
@@ -837,11 +841,11 @@ module async_fifo #(
   logic full, empty;
 
   // Write logic
-  assign wr_ptr_bin_d = wr_ptr_bin_q + (wr_valid_i & wr_ready_o);
-  assign wr_ready_o = ~full;
+  assign wr_ptr_bin_d = wr_ptr_bin_q + (wr_valid & wr_ready);
+  assign wr_ready = ~full;
 
-  always_ff @(posedge wr_clk_i or negedge wr_rst_ni) begin
-    if (!wr_rst_ni) begin
+  always_ff @(posedge wr_clk or negedge wr_rst_n) begin
+    if (!wr_rst_n) begin
       wr_ptr_bin_q <= '0;
       wr_ptr_gray_q <= '0;
     end else begin
@@ -850,19 +854,19 @@ module async_fifo #(
     end
   end
 
-  always_ff @(posedge wr_clk_i) begin
-    if (wr_valid_i & wr_ready_o) begin
-      mem[wr_ptr_bin_q[AddrWidth-1:0]] <= wr_data_i;
+  always_ff @(posedge wr_clk) begin
+    if (wr_valid & wr_ready) begin
+      mem[wr_ptr_bin_q[AddrWidth-1:0]] <= wr_data;
     end
   end
 
   // Read logic
-  assign rd_ptr_bin_d = rd_ptr_bin_q + (rd_valid_o & rd_ready_i);
-  assign rd_valid_o = ~empty;
-  assign rd_data_o = mem[rd_ptr_bin_q[AddrWidth-1:0]];
+  assign rd_ptr_bin_d = rd_ptr_bin_q + (rd_valid & rd_ready);
+  assign rd_valid = ~empty;
+  assign rd_data = mem[rd_ptr_bin_q[AddrWidth-1:0]];
 
-  always_ff @(posedge rd_clk_i or negedge rd_rst_ni) begin
-    if (!rd_rst_ni) begin
+  always_ff @(posedge rd_clk or negedge rd_rst_n) begin
+    if (!rd_rst_n) begin
       rd_ptr_bin_q <= '0;
       rd_ptr_gray_q <= '0;
     end else begin
@@ -900,15 +904,15 @@ endmodule
 \`\`\`systemverilog
 // Reset synchronizer: async assert, sync deassert
 module reset_sync (
-  input  logic clk_i,
-  input  logic rst_ni,      // Async reset input
-  output logic rst_sync_no  // Synchronized reset output
+  input  logic clk,
+  input  logic rst_n,       // Async reset input
+  output logic rst_sync_n   // Synchronized reset output
 );
 
   logic rst_q1, rst_q2;
 
-  always_ff @(posedge clk_i or negedge rst_ni) begin
-    if (!rst_ni) begin
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
       rst_q1 <= 1'b0;
       rst_q2 <= 1'b0;
     end else begin
@@ -917,7 +921,7 @@ module reset_sync (
     end
   end
 
-  assign rst_sync_no = rst_q2;
+  assign rst_sync_n = rst_q2;
 
 endmodule
 \`\`\`

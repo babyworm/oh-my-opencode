@@ -267,6 +267,8 @@ npx oh-my-opencode install --no-tui --claude=<yes|no|max20> --chatgpt=<yes|no> -
 
 > **Ubuntu/Debian 用户注意**：如果你是用 Snap 装的 Bun (`/snap/bin/bun`)，由于 Snap 的沙箱机制，`bunx` 会报 "script not found" 错误。要么改用 `npx`，要么用官方脚本重装 Bun：`curl -fsSL https://bun.sh/install | bash`
 
+> **故障排除**：如果安装失败或似乎不起作用，请运行 `bunx oh-my-opencode doctor` 来诊断常见问题。
+
 **例子：**
 - 全套订阅 + max20：`bunx oh-my-opencode install --no-tui --claude=max20 --chatgpt=yes --gemini=yes`
 - 只有 Claude（没 max20）：`bunx oh-my-opencode install --no-tui --claude=yes --chatgpt=no --gemini=no`
@@ -424,6 +426,49 @@ gh repo star code-yeongyu/oh-my-opencode
 
 </details>
 
+## CLI 命令
+
+Oh My OpenCode 提供管理和故障排除的 CLI：
+
+| 命令 | 说明 |
+|---------|-------------|
+| `bunx oh-my-opencode install` | 交互式安装向导 |
+| `bunx oh-my-opencode doctor` | 运行配置健康检查 |
+| `bunx oh-my-opencode run <message>` | 以 Todo/后台任务强制完成模式运行 OpenCode |
+| `bunx oh-my-opencode get-local-version` | 显示已安装版本并检查更新 |
+
+### Doctor 命令
+
+`doctor` 命令运行 17+ 项健康检查来诊断常见问题：
+
+```bash
+bunx oh-my-opencode doctor
+# 详细输出
+bunx oh-my-opencode doctor --verbose
+# 检查特定类别
+bunx oh-my-opencode doctor --category authentication
+```
+
+检查类别：`installation`、`configuration`、`authentication`、`dependencies`、`tools`、`updates`
+
+**使用场景：**
+- 安装似乎不起作用时
+- Agent 没有正确加载时
+- 认证失败时
+
+### Run 命令
+
+`run` 命令以增强的完成强制功能启动 OpenCode：
+
+```bash
+bunx oh-my-opencode run "修复 index.ts 中的 bug"
+bunx oh-my-opencode run --agent Sisyphus "实现功能 X"
+bunx oh-my-opencode run --timeout 3600000 "大规模重构任务"
+```
+
+与 `opencode run` 不同，此命令会等待直到：
+- 所有 Todo 完成或取消
+- 所有子会话（后台任务）处于空闲状态
 
 ## 卸载
 

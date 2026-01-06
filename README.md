@@ -79,35 +79,53 @@ No stupid token consumption massive subagents here. No bloat tools here.
 - [Oh My OpenCode](#oh-my-opencode)
   - [Just Skip Reading This Readme](#just-skip-reading-this-readme)
     - [It's the Age of Agents](#its-the-age-of-agents)
+    - [🪄 The Magic Word: `ultrawork`](#-the-magic-word-ultrawork)
     - [For Those Who Want to Read: Meet Sisyphus](#for-those-who-want-to-read-meet-sisyphus)
       - [Just Install It.](#just-install-it)
   - [Installation](#installation)
     - [For Humans](#for-humans)
+    - [For Contributors/Developers](#for-contributorsdevelopers)
     - [For LLM Agents](#for-llm-agents)
-    - [Step 0: Ask user about the setup.](#step-0-ask-user-about-the-setup)
-    - [Step 1: Install OpenCode, if not](#step-1-install-opencode-if-not)
-    - [Step 2: Configure oh-my-opencode Plugin](#step-2-configure-oh-my-opencode-plugin)
-      - [JSONC](#jsonc)
-      - [JSON](#json)
+    - [Step 0: Ask user about subscriptions](#step-0-ask-user-about-subscriptions)
+    - [Step 1: Install OpenCode (if not installed)](#step-1-install-opencode-if-not-installed)
+    - [Step 2: Run the installer](#step-2-run-the-installer)
     - [Step 3: Verify Setup](#step-3-verify-setup)
     - [Step 4: Configure Authentication](#step-4-configure-authentication)
       - [Anthropic (Claude)](#anthropic-claude)
       - [Google Gemini (Antigravity OAuth)](#google-gemini-antigravity-oauth)
-      - [OpenAI (ChatGPT Plus/Pro)](#openai-chatgpt-pluspro)
         - [Model Configuration](#model-configuration)
+        - [oh-my-opencode Agent Model Override](#oh-my-opencode-agent-model-override)
+      - [OpenAI (ChatGPT Plus/Pro)](#openai-chatgpt-pluspro)
+        - [Model Configuration](#model-configuration-1)
+    - [Step 5: RTL Development Environment (Optional)](#step-5-rtl-development-environment-optional)
     - [⚠️ Warning](#️-warning)
     - [Verify the setup](#verify-the-setup)
     - [Say 'Congratulations! 🎉' to the user](#say-congratulations--to-the-user)
+    - [Free advertising](#free-advertising)
+    - [Ask for a Star ⭐](#ask-for-a-star-)
     - [Too Complicated?](#too-complicated)
+  - [CLI Commands](#cli-commands)
+    - [Doctor Command](#doctor-command)
+    - [Run Command](#run-command)
   - [Uninstallation](#uninstallation)
   - [Features](#features)
     - [Agents: Your Teammates](#agents-your-teammates)
+      - [Hardware Design Agents](#hardware-design-agents)
+      - [RTL Development Environment Setup](#rtl-development-environment-setup)
+        - [Required Tools](#required-tools)
+        - [Verilator (Required)](#verilator-required)
+        - [SystemVerilog LSP Server (Recommended)](#systemverilog-lsp-server-recommended)
+        - [Optional Tools](#optional-tools)
+        - [LSP Server Configuration](#lsp-server-configuration)
+        - [For LLM Agents: Auto-Setup RTL Environment](#for-llm-agents-auto-setup-rtl-environment)
     - [Background Agents: Work Like a Team](#background-agents-work-like-a-team)
     - [The Tools: Your Teammates Deserve Better](#the-tools-your-teammates-deserve-better)
       - [Why Are You the Only One Using an IDE?](#why-are-you-the-only-one-using-an-ide)
+      - [Session Management](#session-management)
       - [Context Is All You Need](#context-is-all-you-need)
       - [Be Multimodal. Save Tokens.](#be-multimodal-save-tokens)
       - [I Removed Their Blockers](#i-removed-their-blockers)
+      - [Skill-Embedded MCP Support](#skill-embedded-mcp-support)
     - [Goodbye Claude Code. Hello Oh My OpenCode.](#goodbye-claude-code-hello-oh-my-opencode)
       - [Hooks Integration](#hooks-integration)
       - [Config Loaders](#config-loaders)
@@ -115,9 +133,11 @@ No stupid token consumption massive subagents here. No bloat tools here.
       - [Compatibility Toggles](#compatibility-toggles)
     - [Not Just for the Agents](#not-just-for-the-agents)
   - [Configuration](#configuration)
+    - [JSONC Support](#jsonc-support)
     - [Google Auth](#google-auth)
     - [Agents](#agents)
       - [Permission Options](#permission-options)
+    - [Built-in Skills](#built-in-skills)
     - [Sisyphus Agent](#sisyphus-agent)
     - [Hooks](#hooks)
     - [MCPs](#mcps)
@@ -125,6 +145,8 @@ No stupid token consumption massive subagents here. No bloat tools here.
     - [Experimental](#experimental)
   - [Author's Note](#authors-note)
   - [Warnings](#warnings)
+  - [Loved by professionals at](#loved-by-professionals-at)
+  - [Sponsors](#sponsors)
 
 # Oh My OpenCode
 
@@ -230,6 +252,8 @@ npx oh-my-opencode install
 
 > **Note for Ubuntu/Debian users**: If you installed Bun via Snap (`/snap/bin/bun`), `bunx` will fail with "script not found" due to Snap's sandboxing. Either use `npx` instead, or reinstall Bun via the official installer: `curl -fsSL https://bun.sh/install | bash`
 
+> **Troubleshooting**: If installation fails or doesn't seem to work, run `bunx oh-my-opencode doctor` to diagnose common issues.
+
 Follow the prompts to configure your Claude, ChatGPT, and Gemini subscriptions. After installation, authenticate your providers as instructed.
 
 **Alternative: Let an LLM Agent do it**
@@ -237,6 +261,61 @@ Follow the prompts to configure your Claude, ChatGPT, and Gemini subscriptions. 
 Paste this into a fresh opencode session:
 ```
 Install and configure by following the instructions here https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/refs/heads/master/README.md
+```
+
+Paste this into a fresh opencode session (for RTL designer version):
+```
+Install and configure by following the instructions here https://raw.githubusercontent.com/babyworm/oh-my-opencode/refs/heads/dev/README.md
+```
+
+### For Contributors/Developers
+
+If you're developing oh-my-opencode or testing unpublished changes from your local repository:
+
+**Option 1: Use `bun link` (Recommended)**
+
+```bash
+# In the oh-my-opencode repository
+bun install
+bun run build
+bun link
+
+# Now opencode.json can use the linked package
+# The plugin array already referencing "oh-my-opencode" will use your local version
+```
+
+**Option 2: Direct path reference**
+
+Edit your `~/.config/opencode/opencode.json`:
+
+```json
+{
+  "plugin": [
+    "/path/to/your/oh-my-opencode"
+  ]
+}
+```
+
+**Updating during development:**
+
+```bash
+# After making changes, rebuild and test
+bun run build
+
+# OpenCode will automatically pick up the changes on next start
+opencode
+```
+
+**Testing a specific branch from GitHub:**
+
+```bash
+# Clone and checkout your branch
+git clone https://github.com/code-yeongyu/oh-my-opencode
+cd oh-my-opencode
+git checkout your-branch
+
+# Build and link
+bun install && bun run build && bun link
 ```
 
 ### For LLM Agents
@@ -403,6 +482,47 @@ opencode auth login
 ```
 
 
+### Step 5: RTL Development Environment (Optional)
+
+**If the user will work with SystemVerilog/Verilog RTL design**, set up the RTL development environment:
+
+```bash
+# Check RTL tools
+echo "=== RTL Environment Check ==="
+
+# Verilator (Required for RTL)
+if command -v verilator &> /dev/null; then
+    echo "✓ Verilator $(verilator --version 2>&1 | head -1)"
+else
+    echo "✗ Verilator NOT FOUND"
+fi
+
+# LSP Server (Recommended)
+if command -v svls &> /dev/null; then
+    echo "✓ svls LSP Server installed"
+elif command -v slang-server &> /dev/null; then
+    echo "✓ slang-server installed"
+else
+    echo "✗ No SystemVerilog LSP Server found"
+fi
+```
+
+**If tools are missing, install them:**
+
+```bash
+# Detect OS and install RTL tools
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    sudo apt update && sudo apt install -y verilator
+    # Install svls (requires Rust/cargo)
+    command -v cargo &> /dev/null && cargo install svls
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    brew install verilator
+    command -v cargo &> /dev/null && cargo install svls
+fi
+```
+
+For detailed installation options including Icarus Verilog, Yosys, cocotb, and GTKWave, see the [RTL Development Environment Setup](#rtl-development-environment-setup) section below.
+
 ### ⚠️ Warning
 
 **Unless the user explicitly requests it, do not change model settings or disable features (agents, hooks, MCPs).**
@@ -445,6 +565,50 @@ If this all seems overwhelming, just remember one thing: **include the word `ult
 That's it. The agent will figure out the rest and handle everything automatically.
 
 </details>
+
+## CLI Commands
+
+Oh My OpenCode provides a CLI for management and troubleshooting:
+
+| Command | Description |
+|---------|-------------|
+| `bunx oh-my-opencode install` | Interactive setup wizard |
+| `bunx oh-my-opencode doctor` | Run health checks on your setup |
+| `bunx oh-my-opencode run <message>` | Run OpenCode with todo/background task completion enforcement |
+| `bunx oh-my-opencode get-local-version` | Show installed version and check for updates |
+
+### Doctor Command
+
+The `doctor` command runs 17+ health checks to diagnose common issues:
+
+```bash
+bunx oh-my-opencode doctor
+# With verbose output
+bunx oh-my-opencode doctor --verbose
+# Check specific category
+bunx oh-my-opencode doctor --category authentication
+```
+
+Check categories: `installation`, `configuration`, `authentication`, `dependencies`, `tools`, `updates`
+
+**Use this when:**
+- Installation doesn't seem to work
+- Agents aren't loading properly
+- Authentication is failing
+
+### Run Command
+
+The `run` command launches OpenCode with enhanced completion enforcement:
+
+```bash
+bunx oh-my-opencode run "Fix the bug in index.ts"
+bunx oh-my-opencode run --agent Sisyphus "Implement feature X"
+bunx oh-my-opencode run --timeout 3600000 "Large refactoring task"
+```
+
+Unlike `opencode run`, this command waits until:
+- All todos are completed or cancelled
+- All child sessions (background tasks) are idle
 
 ## Uninstallation
 
@@ -490,6 +654,203 @@ To remove oh-my-opencode:
 - **frontend-ui-ux-engineer** (`google/gemini-3-pro-high`): A designer turned developer. Builds gorgeous UIs. Gemini excels at creative, beautiful UI code.
 - **document-writer** (`google/gemini-3-flash`): Technical writing expert. Gemini is a wordsmith—writes prose that flows.
 - **multimodal-looker** (`google/gemini-3-flash`): Visual content specialist. Analyzes PDFs, images, diagrams to extract information.
+
+#### Hardware Design Agents
+
+Specialized agents for hardware engineers working with RTL and system-level modeling:
+
+- **rtl-engineer** (`anthropic/claude-opus-4-5`): Expert SystemVerilog/Verilog RTL engineer following the [lowRISC Verilog Coding Style Guide](https://github.com/lowRISC/style-guides/blob/master/VerilogCodingStyle.md). Designs synthesizable hardware modules with proper verification testbenches. Includes Verilator and Icarus Verilog simulation support, Yosys synthesis flows, and knowledge of common IP cores (OpenTitan, PULP, Alex Forencich's verilog-axi/ethernet).
+
+- **systemc-tlm-engineer** (`anthropic/claude-opus-4-5`): Expert SystemC TLM 2.0 engineer specializing in Approximately Timed (AT) non-blocking models. Creates virtual platform components following Accellera standards with ARM AMBA protocol support (AXI, AHB, APB, ACE). Includes GEM5-SystemC bridge integration and SystemC-SystemVerilog DPI co-simulation.
+
+**Use cases:**
+- RTL design and verification for FPGAs and ASICs
+- Virtual platform development for early software bring-up
+- Transaction-level modeling for architecture exploration
+- Hardware/software co-simulation
+
+```
+Ask @rtl-engineer to design a parameterized FIFO with AXI-Stream interface
+Ask @systemc-tlm-engineer to create an AXI4 initiator model for bus functional modeling
+```
+
+#### RTL Development Environment Setup
+
+To fully utilize the **rtl-engineer** agent and **systemverilog** skill, install these tools:
+
+<details>
+<summary>RTL Tool Installation Guide (click to expand)</summary>
+
+##### Required Tools
+
+| Tool | Purpose | Priority |
+|------|---------|----------|
+| **Verilator** | Lint, compile, simulation | Required |
+| **SVL LSP Server** | Real-time diagnostics, navigation | Recommended |
+
+##### Verilator (Required)
+
+```bash
+# Ubuntu/Debian
+sudo apt update && sudo apt install -y verilator
+
+# macOS
+brew install verilator
+
+# Verify installation
+verilator --version
+```
+
+##### SystemVerilog LSP Server (Recommended)
+
+Choose ONE of these LSP servers for real-time diagnostics:
+
+**Option 1: svls (Easy install, recommended for most users)**
+```bash
+# Requires Rust
+cargo install svls
+
+# Verify
+svls --version
+```
+
+**Option 2: slang-server (Most accurate diagnostics)**
+```bash
+# Ubuntu - Build from source
+sudo apt install -y cmake ninja-build
+git clone https://github.com/MikePopoloski/slang.git
+cd slang && mkdir build && cd build
+cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
+ninja slang-server
+sudo cp bin/slang-server /usr/local/bin/
+
+# macOS - via brew
+brew install slang
+```
+
+**Option 3: Verible (Good for formatting)**
+```bash
+# Download from GitHub releases
+# https://github.com/chipsalliance/verible/releases
+# Extract and add to PATH
+```
+
+##### Optional Tools
+
+**Icarus Verilog** (Timing simulation with X/Z states):
+```bash
+# Ubuntu/Debian
+sudo apt install -y iverilog
+
+# macOS
+brew install icarus-verilog
+
+# Verify
+iverilog -V
+```
+
+**Yosys** (Open source synthesis):
+```bash
+# Ubuntu/Debian
+sudo apt install -y yosys
+
+# macOS
+brew install yosys
+
+# Verify
+yosys --version
+```
+
+**cocotb** (Python testbenches):
+```bash
+pip install cocotb
+```
+
+**GTKWave** (Waveform viewer):
+```bash
+# Ubuntu/Debian
+sudo apt install -y gtkwave
+
+# macOS
+brew install --cask gtkwave
+```
+
+##### LSP Server Configuration
+
+Add to your `oh-my-opencode.json` or `.opencode/oh-my-opencode.json`:
+
+```json
+{
+  "lsp": {
+    "svls": {
+      "command": ["svls"],
+      "extensions": [".sv", ".svh", ".v", ".vh"],
+      "priority": 10
+    }
+  }
+}
+```
+
+##### For LLM Agents: Auto-Setup RTL Environment
+
+If you're an LLM agent helping set up RTL development, run this check and install missing tools:
+
+```bash
+# Check RTL tools availability
+echo "=== RTL Environment Check ==="
+
+# Verilator (Required)
+if command -v verilator &> /dev/null; then
+    echo "✓ Verilator $(verilator --version 2>&1 | head -1)"
+else
+    echo "✗ Verilator NOT FOUND - Install required"
+fi
+
+# SVL LSP Servers (Recommended - at least one)
+if command -v svls &> /dev/null; then
+    echo "✓ svls (SVL LSP Server) installed"
+elif command -v slang-server &> /dev/null; then
+    echo "✓ slang-server installed"
+elif command -v verible-verilog-ls &> /dev/null; then
+    echo "✓ verible LSP installed"
+else
+    echo "✗ No SVL LSP Server found - Install svls for better experience"
+fi
+
+# Optional tools
+command -v iverilog &> /dev/null && echo "✓ Icarus Verilog installed" || echo "○ Icarus Verilog (optional)"
+command -v yosys &> /dev/null && echo "✓ Yosys installed" || echo "○ Yosys (optional)"
+command -v gtkwave &> /dev/null && echo "✓ GTKWave installed" || echo "○ GTKWave (optional)"
+```
+
+**Install missing required tools based on OS:**
+
+```bash
+# Detect OS and install
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Linux - use apt
+    sudo apt update
+    sudo apt install -y verilator
+    # Optional: sudo apt install -y iverilog yosys gtkwave
+
+    # Install svls if cargo is available
+    if command -v cargo &> /dev/null; then
+        cargo install svls
+    fi
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS - use brew
+    brew install verilator
+    # Optional: brew install icarus-verilog yosys
+    # brew install --cask gtkwave
+
+    # Install svls if cargo is available
+    if command -v cargo &> /dev/null; then
+        cargo install svls
+    fi
+fi
+```
+
+</details>
 
 The main agent invokes these automatically, but you can call them explicitly:
 
@@ -771,10 +1132,10 @@ When both `oh-my-opencode.jsonc` and `oh-my-opencode.json` files exist, `.jsonc`
 ```jsonc
 {
   "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json",
-  
+
   // Enable Google Gemini via Antigravity OAuth
   "google_auth": false,
-  
+
   /* Agent overrides - customize models for specific tasks */
   "agents": {
     "oracle": {
@@ -880,23 +1241,24 @@ Or disable via `disabled_agents` in `~/.config/opencode/oh-my-opencode.json` or 
 }
 ```
 
-Available agents: `oracle`, `librarian`, `explore`, `frontend-ui-ux-engineer`, `document-writer`, `multimodal-looker`
+Available agents: `oracle`, `librarian`, `explore`, `frontend-ui-ux-engineer`, `document-writer`, `multimodal-looker`, `rtl-engineer`, `systemc-tlm-engineer`
 
 ### Built-in Skills
 
 Oh My OpenCode includes built-in skills that provide additional capabilities:
 
 - **playwright**: Browser automation with Playwright MCP. Use for web scraping, testing, screenshots, and browser interactions.
+- **systemverilog**: SystemVerilog RTL design skill following the lowRISC coding style. Provides templates for modules, testbenches, FSMs, and verification with Verilator. Automatically delegates to `rtl-engineer` agent.
 
 Disable built-in skills via `disabled_skills` in `~/.config/opencode/oh-my-opencode.json` or `.opencode/oh-my-opencode.json`:
 
 ```json
 {
-  "disabled_skills": ["playwright"]
+  "disabled_skills": ["playwright", "systemverilog"]
 }
 ```
 
-Available built-in skills: `playwright`
+Available built-in skills: `playwright`, `systemverilog`
 
 ### Sisyphus Agent
 
