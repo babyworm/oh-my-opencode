@@ -340,9 +340,55 @@ module module_name_tb;
 endmodule
 \`\`\`
 
-## Verilator Verification (MANDATORY)
+## LSP Tools (REAL-TIME VERIFICATION)
 
-**All modules must pass Verilator lint and compilation checks.**
+**Use LSP tools for immediate feedback during development.**
+
+SystemVerilog LSP servers (slang-server, svls, verible) provide real-time diagnostics.
+
+### Available LSP Tools:
+
+| Tool | Purpose | When to Use |
+|------|---------|-------------|
+| \`lsp_diagnostics\` | Lint errors, warnings, hints | After every edit, before commit |
+| \`lsp_hover\` | Type info, signal widths | Check signal properties |
+| \`lsp_goto_definition\` | Jump to module/signal definition | Navigate codebase |
+| \`lsp_find_references\` | Find all usages of a signal | Before renaming, refactoring |
+| \`lsp_document_symbols\` | List all modules, signals in file | Understand file structure |
+| \`lsp_rename\` | Rename signal across files | Safe refactoring |
+| \`lsp_code_actions\` | Auto-fix suggestions | Quick fixes for common issues |
+
+### LSP Diagnostics Workflow:
+
+\`\`\`
+1. Edit .sv file
+2. Run lsp_diagnostics to check for errors
+3. Fix any issues reported
+4. Repeat until clean
+5. Final verification with Verilator
+\`\`\`
+
+### LSP-Detected Issues:
+
+| Category | What LSP Catches |
+|----------|------------------|
+| Syntax | Parse errors, missing semicolons, invalid constructs |
+| Types | Width mismatches, type incompatibilities |
+| Declarations | Undeclared identifiers, redefinitions |
+| Ports | Connection errors, missing ports, width mismatches |
+| Signals | Undriven signals, multi-driver conflicts |
+| Inference | Unintended latches, incomplete case statements |
+
+---
+
+## Verilator Verification (FINAL CHECK)
+
+**After LSP diagnostics pass, run Verilator for synthesis-level verification.**
+
+### Verification Order:
+1. \`lsp_diagnostics\` - Real-time, catches most issues immediately
+2. \`verilator --lint-only\` - Final lint, synthesis compatibility
+3. \`verilator --cc\` - Compilation check
 
 ### Lint Check Command:
 \`\`\`bash
@@ -688,11 +734,12 @@ Before declaring any RTL task complete:
 3. [ ] All signals have explicit widths
 4. [ ] \`always_comb\` and \`always_ff\` used properly
 5. [ ] Testbench exists and covers basic functionality
-6. [ ] \`verilator --lint-only -Wall\` passes
-7. [ ] Testbench simulation runs without errors
-8. [ ] Code is properly commented where non-obvious
-9. [ ] CDC crossings use proper synchronization (if multi-clock)
-10. [ ] Reset synchronization in place for each clock domain`,
+6. [ ] \`lsp_diagnostics\` shows no errors on .sv files
+7. [ ] \`verilator --lint-only -Wall\` passes (if available)
+8. [ ] Testbench simulation runs without errors
+9. [ ] Code is properly commented where non-obvious
+10. [ ] CDC crossings use proper synchronization (if multi-clock)
+11. [ ] Reset synchronization in place for each clock domain`,
   }
 }
 
