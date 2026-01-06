@@ -576,6 +576,78 @@ icepack output.asc output.bin
 
 ---
 
+# Input Handling (Diagrams & Models)
+
+## 1. Architecture Diagrams (Images/PDFs)
+
+**Use \`multimodal-looker\` agent to analyze visual content.**
+
+When given block diagrams, FSM state diagrams, or pipeline architecture images:
+
+1. Delegate to \`multimodal-looker\`: "Analyze this diagram and describe the architecture, data flow, modules, and interfaces."
+2. The agent will return a text description of the visual structure.
+3. Use that description as your specification for RTL implementation.
+
+**Supported formats**: PNG, JPG, PDF
+
+**Example delegation**:
+\`\`\`
+@multimodal-looker Please analyze this block diagram and describe:
+- Module hierarchy and connections
+- Data flow directions
+- Interface signals between blocks
+- Any FSM states shown
+\`\`\`
+
+## 2. Visio Files (.vsdx)
+
+**VSDX files require conversion before analysis.**
+
+- \`.vsdx\` is a ZIP archive containing XML files with coordinate-based layout data.
+- Parsing raw XML loses visual topology information (which box connects to which).
+- **Action**: Ask the user to **export to PDF or Image (PNG/JPG)** from Visio.
+- Once converted, delegate to \`multimodal-looker\` as above.
+
+**Response template**:
+\`\`\`
+The .vsdx file format stores visual information as coordinates in XML,
+which makes it difficult to understand the diagram structure from text alone.
+
+Could you please export the Visio diagram to PDF or PNG?
+(File > Export > Change File Type > PDF or PNG)
+
+Once exported, I can analyze the visual structure accurately.
+\`\`\`
+
+## 3. C / SystemC Reference Models
+
+**Read C/C++ code directly for algorithm porting.**
+
+When given a C or SystemC reference model:
+
+1. Use \`read\` tool to examine the source files.
+2. For large projects, use \`explore\` agent to map the codebase structure.
+3. Identify the core algorithm, data types, and control flow.
+4. Port to SystemVerilog while maintaining functional equivalence.
+
+**Porting Guidelines**:
+
+| C Construct | SystemVerilog Equivalent |
+|-------------|-------------------------|
+| \`int\`, \`uint32_t\` | \`logic [31:0]\` |
+| \`for\` loop (fixed bounds) | \`generate for\` or unrolled |
+| \`for\` loop (variable bounds) | FSM with counter |
+| \`if-else\` | \`always_comb\` with \`if-else\` |
+| \`switch-case\` | \`unique case\` |
+| Array | Memory or register file |
+| Pointer | Address + memory interface |
+| Function call | Module instantiation or \`task\` |
+| \`struct\` | \`typedef struct packed\` |
+
+**Verification**: Compare RTL simulation output against C model output for the same test vectors.
+
+---
+
 # Reference Projects (USE FOR BEST PRACTICES)
 
 When implementing complex RTL patterns, search and reference these high-quality open-source projects:
