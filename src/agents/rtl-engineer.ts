@@ -405,26 +405,51 @@ endmodule
 
 ---
 
-## Verilator Verification (FINAL CHECK)
+## Open Source Simulators
 
-**After LSP diagnostics pass, run Verilator for synthesis-level verification.**
+### Simulator Comparison:
 
-### Verification Order:
-1. \`lsp_diagnostics\` - Real-time, catches most issues immediately
-2. \`verilator --lint-only\` - Final lint, synthesis compatibility
-3. \`verilator --cc\` - Compilation check
+| Feature | Verilator | Icarus Verilog (iverilog) |
+|---------|:---------:|:-------------------------:|
+| **Speed** | 10-100x faster | Slower (interpreter) |
+| **SystemVerilog** | Good support | Limited (Verilog-2005) |
+| **Timing (#delay)** | No (cycle-accurate) | Yes |
+| **4-state (X, Z)** | Limited (2-state default) | Full support |
+| **Lint** | Excellent | No |
+| **Best for** | Large SoC, CI/CD, performance | Learning, timing sim, X/Z propagation |
+| **Install** | \`apt install verilator\` | \`apt install iverilog\` |
 
-### Lint Check Command:
+### Simulator Selection Guide:
+
+| Use Case | Recommended |
+|----------|-------------|
+| Fast regression testing, CI/CD | Verilator |
+| Large SoC simulation | Verilator |
+| Timing simulation with delays | Icarus Verilog |
+| X/Z propagation verification | Icarus Verilog |
+| Learning/quick prototyping | Icarus Verilog |
+| Lint + synthesis check | Verilator |
+
+---
+
+## Verilator (LINT + FAST SIMULATION)
+
+**Use Verilator for lint checks and high-performance cycle-accurate simulation.**
+
+### Lint Check:
 \`\`\`bash
 verilator --lint-only -Wall -Wno-fatal <file>.sv
 \`\`\`
 
-### Compilation Check:
+### Compilation + Simulation:
 \`\`\`bash
-verilator --cc --exe --build -Wall <module>_tb.sv <module>.sv
+verilator --cc --exe --build -Wall --trace \\
+  <module>_tb.sv <module>.sv \\
+  --top-module <module>_tb
+./obj_dir/V<module>_tb
 \`\`\`
 
-### Common Verilator Warnings to Address:
+### Common Verilator Warnings:
 - \`UNUSED\`: Unused signals - remove or mark with \`/* verilator lint_off UNUSED */\`
 - \`UNDRIVEN\`: Undriven signals - ensure all outputs are assigned
 - \`UNOPTFLAT\`: Circular combinational logic - break the loop
@@ -432,13 +457,121 @@ verilator --cc --exe --build -Wall <module>_tb.sv <module>.sv
 - \`CASEINCOMPLETE\`: Missing case items - add \`default\`
 - \`LATCH\`: Unintended latch - use \`always_comb\` properly
 
-### Testbench Simulation:
+---
+
+## Icarus Verilog (TIMING SIMULATION)
+
+**Use Icarus Verilog when timing delays or X/Z propagation verification is needed.**
+
+### Compilation + Simulation:
 \`\`\`bash
-# Build and run with Verilator
-verilator --cc --exe --build -Wall --trace \\
-  <module>_tb.sv <module>.sv \\
-  --top-module <module>_tb
-./obj_dir/V<module>_tb
+iverilog -g2012 -o sim.vvp <module>.sv <module>_tb.sv
+vvp sim.vvp
+\`\`\`
+
+### With Waveform Dump (FST):
+\`\`\`bash
+iverilog -g2012 -o sim.vvp <module>.sv <module>_tb.sv
+vvp sim.vvp -fst
+gtkwave dump.fst
+\`\`\`
+
+---
+
+## cocotb (PYTHON TESTBENCHES)
+
+**Write testbenches in Python using cocotb. Works with both Verilator and Icarus.**
+
+### Example cocotb Test:
+\`\`\`python
+import cocotb
+from cocotb.clock import Clock
+from cocotb.triggers import RisingEdge
+
+@cocotb.test()
+async def test_counter(dut):
+    clock = Clock(dut.clk, 10, units="ns")
+    cocotb.start_soon(clock.start())
+    
+    dut.rst_n.value = 0
+    await RisingEdge(dut.clk)
+    dut.rst_n.value = 1
+    
+    for expected in range(10):
+        await RisingEdge(dut.clk)
+        assert dut.count.value == expected, f"Expected {expected}, got {dut.count.value}"
+\`\`\`
+
+### Running cocotb:
+\`\`\`bash
+# With Icarus Verilog
+SIM=icarus make
+
+# With Verilator
+SIM=verilator make
+\`\`\`
+
+### cocotb Advantages:
+- Python's rich ecosystem (pytest, numpy, etc.)
+- Easier to write complex test scenarios
+- Good for constrained random verification
+- Works with multiple simulators
+
+---
+
+## Yosys (OPEN SOURCE SYNTHESIS)
+
+**Use Yosys for synthesis to verify synthesizability and target FPGAs.**
+
+### Basic Synthesis Check:
+\`\`\`bash
+yosys -p "read_verilog -sv <module>.sv; synth; stat"
+\`\`\`
+
+### Synthesis for Specific FPGA:
+\`\`\`bash
+# For Xilinx 7-series
+yosys -p "read_verilog -sv <module>.sv; synth_xilinx -family xc7; write_edif output.edif"
+
+# For Lattice iCE40
+yosys -p "read_verilog -sv <module>.sv; synth_ice40; write_json output.json"
+
+# For Lattice ECP5
+yosys -p "read_verilog -sv <module>.sv; synth_ecp5; write_json output.json"
+
+# For Gowin
+yosys -p "read_verilog -sv <module>.sv; synth_gowin; write_json output.json"
+\`\`\`
+
+### Yosys + nextpnr Flow (Full Open Source):
+\`\`\`bash
+# Synthesis
+yosys -p "read_verilog -sv <module>.sv; synth_ice40 -top <module> -json output.json"
+
+# Place and Route
+nextpnr-ice40 --hx8k --json output.json --pcf pins.pcf --asc output.asc
+
+# Bitstream Generation
+icepack output.asc output.bin
+\`\`\`
+
+### Yosys Synthesis Checks:
+- Catches non-synthesizable constructs
+- Reports cell count, memory usage
+- Generates gate-level netlist for formal verification
+
+---
+
+## Verification Workflow Summary
+
+\`\`\`
+1. lsp_diagnostics     - Real-time lint during editing
+2. verilator --lint    - Comprehensive lint check
+3. Simulation:
+   - Verilator         - Fast, cycle-accurate (default)
+   - Icarus Verilog    - When timing/X/Z needed
+   - cocotb            - Python testbenches (optional)
+4. yosys synth         - Synthesis check (optional)
 \`\`\`
 
 ---
