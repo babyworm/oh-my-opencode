@@ -80,6 +80,9 @@ export const LSP_INSTALL_HINTS: Record<string, string> = {
   tinymist: "See https://github.com/Myriad-Dreamin/tinymist",
   "haskell-language-server": "ghcup install hls",
   bash: "npm install -g bash-language-server",
+  "slang-server": "See https://github.com/MikePopoloski/slang (build from source) or https://github.com/hudson-trading/slang-server",
+  svls: "cargo install svls",
+  verible: "See https://github.com/chipsalliance/verible/releases",
 }
 
 // Synced with OpenCode's server.ts
@@ -246,6 +249,19 @@ export const BUILTIN_SERVERS: Record<string, Omit<LSPServerConfig, "id">> = {
     command: ["haskell-language-server-wrapper", "--lsp"],
     extensions: [".hs", ".lhs"],
   },
+  // SystemVerilog/Verilog LSP servers (priority: slang-server > svls > verible)
+  "slang-server": {
+    command: ["slang-server"],
+    extensions: [".sv", ".svh", ".v", ".vh"],
+  },
+  svls: {
+    command: ["svls"],
+    extensions: [".sv", ".svh", ".v", ".vh"],
+  },
+  verible: {
+    command: ["verible-verilog-ls"],
+    extensions: [".sv", ".svh", ".v", ".vh"],
+  },
 }
 
 // Synced with OpenCode's language.ts
@@ -382,4 +398,8 @@ export const EXT_TO_LANG: Record<string, string> = {
   ".fish": "fish",
   ".graphql": "graphql",
   ".gql": "graphql",
+  ".sv": "systemverilog",
+  ".svh": "systemverilog",
+  ".v": "verilog",
+  ".vh": "verilog",
 }
