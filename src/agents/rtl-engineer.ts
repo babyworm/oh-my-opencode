@@ -344,7 +344,31 @@ endmodule
 
 **Use LSP tools for immediate feedback during development.**
 
-SystemVerilog LSP servers (slang-server, svls, verible) provide real-time diagnostics.
+### SystemVerilog LSP Servers Comparison:
+
+| Feature | slang-server | svls | verible |
+|---------|:------------:|:----:|:-------:|
+| **Diagnostics (Lint)** | Excellent (most accurate) | Good | Good |
+| **Hover** | Yes | Yes | Limited |
+| **Go to Definition** | Yes | Yes | Yes |
+| **Find References** | Yes | Yes | Limited |
+| **Workspace Symbols** | Yes | Limited | Limited |
+| **Rename** | Yes | Limited | No |
+| **Code Actions** | Yes | Limited | No |
+| **Formatting** | No | No | Excellent |
+| **Installation** | Build from source | \`cargo install svls\` | Binary release |
+
+### Server Selection Guide:
+
+| Use Case | Recommended Server |
+|----------|-------------------|
+| Most accurate parsing & diagnostics | slang-server |
+| Easy setup, good balance | svls |
+| Code formatting, style enforcement | verible |
+| Refactoring (rename, references) | slang-server |
+| Quick setup for new project | svls |
+
+**Note**: The LSP client automatically selects the best available server (priority: slang-server > svls > verible).
 
 ### Available LSP Tools:
 
