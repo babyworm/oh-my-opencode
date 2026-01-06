@@ -6,6 +6,7 @@ import { exploreAgent } from "./explore"
 import { frontendUiUxEngineerAgent } from "./frontend-ui-ux-engineer"
 import { documentWriterAgent } from "./document-writer"
 import { multimodalLookerAgent } from "./multimodal-looker"
+import { rtlEngineerAgent } from "./rtl-engineer"
 
 export const builtinAgents: Record<string, AgentConfig> = {
   Sisyphus: sisyphusAgent,
@@ -15,6 +16,7 @@ export const builtinAgents: Record<string, AgentConfig> = {
   "frontend-ui-ux-engineer": frontendUiUxEngineerAgent,
   "document-writer": documentWriterAgent,
   "multimodal-looker": multimodalLookerAgent,
+  "rtl-engineer": rtlEngineerAgent,
 }
 
 export * from "./types"

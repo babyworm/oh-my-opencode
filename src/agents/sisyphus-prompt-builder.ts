@@ -230,6 +230,42 @@ Before touching any frontend file, think:
 style, className, tailwind, color, background, border, shadow, margin, padding, width, height, flex, grid, animation, transition, hover, responsive, font-size, icon, svg`
 }
 
+export function buildRtlSection(agents: AvailableAgent[]): string {
+  const rtlAgent = agents.find((a) => a.name === "rtl-engineer")
+  if (!rtlAgent) return ""
+
+  return `### RTL/HDL Files: Auto-Delegate to RTL Engineer
+
+RTL files (.v, .sv, .vh, .svh) are hardware description code requiring specialized expertise.
+
+#### File Extension Recognition
+
+| Extension | Type | Action |
+|-----------|------|--------|
+| \`.sv\` | SystemVerilog module | **DELEGATE** to \`rtl-engineer\` |
+| \`.v\` | Verilog module | **DELEGATE** to \`rtl-engineer\` |
+| \`.svh\` | SystemVerilog header | **DELEGATE** to \`rtl-engineer\` |
+| \`.vh\` | Verilog header | **DELEGATE** to \`rtl-engineer\` |
+
+#### When Working with RTL Files
+
+**ALWAYS delegate to \`rtl-engineer\`** for:
+- Creating new RTL modules
+- Modifying existing RTL code
+- Writing testbenches (*_tb.sv)
+- FSM design and implementation
+- Synthesizable logic design
+- Verilator lint fixes
+
+#### RTL Engineer Capabilities
+- lowRISC Verilog Coding Style compliance
+- Active-low asynchronous reset (mandatory)
+- Verilator lint/compile verification
+- Testbench generation for every module
+
+**Unlike frontend files, RTL files have NO "handle directly" option. Always delegate.**`
+}
+
 export function buildOracleSection(agents: AvailableAgent[]): string {
   const oracleAgent = agents.find((a) => a.name === "oracle")
   if (!oracleAgent) return ""
@@ -261,6 +297,7 @@ Briefly announce "Consulting Oracle for [reason]" before invocation.
 
 export function buildHardBlocksSection(agents: AvailableAgent[]): string {
   const frontendAgent = agents.find((a) => a.name === "frontend-ui-ux-engineer")
+  const rtlAgent = agents.find((a) => a.name === "rtl-engineer")
 
   const blocks = [
     "| Type error suppression (`as any`, `@ts-ignore`) | Never |",
@@ -275,6 +312,12 @@ export function buildHardBlocksSection(agents: AvailableAgent[]): string {
     )
   }
 
+  if (rtlAgent) {
+    blocks.unshift(
+      "| RTL/HDL files (.v, .sv, .vh, .svh) | Always delegate to `rtl-engineer` |"
+    )
+  }
+
   return `## Hard Blocks (NEVER violate)
 
 | Constraint | No Exceptions |
@@ -284,6 +327,7 @@ ${blocks.join("\n")}`
 
 export function buildAntiPatternsSection(agents: AvailableAgent[]): string {
   const frontendAgent = agents.find((a) => a.name === "frontend-ui-ux-engineer")
+  const rtlAgent = agents.find((a) => a.name === "rtl-engineer")
 
   const patterns = [
     "| **Type Safety** | `as any`, `@ts-ignore`, `@ts-expect-error` |",
@@ -298,6 +342,14 @@ export function buildAntiPatternsSection(agents: AvailableAgent[]): string {
       4,
       0,
       "| **Frontend** | Direct edit to visual/styling code (logic changes OK) |"
+    )
+  }
+
+  if (rtlAgent) {
+    patterns.splice(
+      4,
+      0,
+      "| **RTL/HDL** | Direct edit to .v/.sv/.vh/.svh files (always delegate) |"
     )
   }
 

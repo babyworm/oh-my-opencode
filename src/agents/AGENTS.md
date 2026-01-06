@@ -15,6 +15,7 @@ agents/
 ├── frontend-ui-ux-engineer.ts  # UI generation
 ├── document-writer.ts       # Technical docs
 ├── multimodal-looker.ts     # PDF/image analysis
+├── rtl-engineer.ts          # SystemVerilog RTL design
 ├── sisyphus-prompt-builder.ts  # Sisyphus prompt construction
 ├── build-prompt.ts          # Shared build agent prompt
 ├── plan-prompt.ts           # Shared plan agent prompt
@@ -34,6 +35,7 @@ agents/
 | frontend-ui-ux-engineer | google/gemini-3-pro-preview | - | Beautiful UI code |
 | document-writer | google/gemini-3-pro-preview | - | Technical writing |
 | multimodal-looker | google/gemini-3-flash | - | Visual analysis |
+| rtl-engineer | anthropic/claude-opus-4-5 | - | SystemVerilog RTL design, verification |
 
 ## HOW TO ADD
 

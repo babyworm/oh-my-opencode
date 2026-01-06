@@ -8,6 +8,7 @@ import {
   buildLibrarianSection,
   buildDelegationTable,
   buildFrontendSection,
+  buildRtlSection,
   buildOracleSection,
   buildHardBlocksSection,
   buildAntiPatternsSection,
@@ -400,6 +401,7 @@ function buildDynamicSisyphusPrompt(
   const exploreSection = buildExploreSection(availableAgents)
   const librarianSection = buildLibrarianSection(availableAgents)
   const frontendSection = buildFrontendSection(availableAgents)
+  const rtlSection = buildRtlSection(availableAgents)
   const delegationTable = buildDelegationTable(availableAgents)
   const oracleSection = buildOracleSection(availableAgents)
   const hardBlocks = buildHardBlocksSection(availableAgents)
@@ -436,6 +438,8 @@ function buildDynamicSisyphusPrompt(
     SISYPHUS_PHASE2B_PRE_IMPLEMENTATION,
     "",
     frontendSection,
+    "",
+    rtlSection,
     "",
     delegationTable,
     "",
